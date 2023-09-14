@@ -26,8 +26,6 @@ const Cart = ({ cartItems, allItems, setCartItems }) => {
   const [couponValue, setCouponValue] = useState("");
   const [creditCard, setCreditCard] = useState({ value: "", error: "" });
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState("");
-  const [isCartEmpty, setIsCartEmpty] = useState(false);
   const navigate = useNavigate();
 
   const handleCouponChange = (event) => {
@@ -67,22 +65,14 @@ const Cart = ({ cartItems, allItems, setCartItems }) => {
   }, [cartItems, discount]);
 
   const handleRemoveFromCart = (id) => {
-    setCartItems(cartItems.filter((book) => book !== id));
-  };
-
-  useEffect(() => {
-    let tempTotal = 0;
-    for (const item of cartItems) {
-      tempTotal +=
-        allItems[allItems.findIndex((book) => book._id === item)].price;
+    const updatedCart = cartItems.filter((book) => book !== id);
+    setCartItems(updatedCart);
+    if (updatedCart.length === 0) {
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
     }
-    setTotal(tempTotal);
-    if (discount > 0)
-      setDiscountedTotal(tempTotal - tempTotal / (100 / discount));
-
-    setIsCartEmpty(cartItems.length === 0);
-    // eslint-disable-next-line
-  }, [cartItems, discount]);
+  };
 
   const handleSubmitOrder = () => {
     if (creditCard.value.length !== 16) {
@@ -229,26 +219,21 @@ const Cart = ({ cartItems, allItems, setCartItems }) => {
                     fontSize: "1.2rem",
                   }}
                 >
-                  <Button
-                    style={{
-                      marginTop: "1rem",
-                      backgroundColor: "#204e59",
-                      marginRight: "3em",
-                    }}
-                    secondary
-                    onClick={() => {
-                      if (isCartEmpty) {
-                        setError("Your cart is empty !");
-                        setTimeout(() => {
-                          setError("");
-                        }, 3000);
-                      } else {
+                  {cartItems.length !== 0 && (
+                    <Button
+                      style={{
+                        marginTop: "1rem",
+                        backgroundColor: "#204e59",
+                        marginRight: "3em",
+                      }}
+                      secondary
+                      onClick={() => {
                         setOpen(true);
-                      }
-                    }}
-                  >
-                    Checkout
-                  </Button>
+                      }}
+                    >
+                      Checkout
+                    </Button>
+                  )}
                   <strong>Total: </strong>BAM
                   {discount > 0
                     ? parseFloat(discountedTotal).toFixed(2)
@@ -260,17 +245,6 @@ const Cart = ({ cartItems, allItems, setCartItems }) => {
                     </span>
                   )}
                 </div>
-                {error && (
-                  <p
-                    style={{
-                      color: "red",
-                      marginTop: "3em",
-                      marginLeft: "8em",
-                    }}
-                  >
-                    {error}
-                  </p>
-                )}
               </CardContent>
             </Card>
           </>
