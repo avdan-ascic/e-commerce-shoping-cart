@@ -17,7 +17,6 @@ import "react-toastify/dist/ReactToastify.css";
 import { UserContext } from "../../App";
 import { create } from "../../api/order-api";
 import { getPromotion } from "../../api/promotion-api";
-import { setDefaultOptions } from "date-fns";
 
 const Cart = ({ cartItems, allItems, setCartItems }) => {
   const { loggedIn, user } = useContext(UserContext);
@@ -28,6 +27,7 @@ const Cart = ({ cartItems, allItems, setCartItems }) => {
   const [creditCard, setCreditCard] = useState({ value: "", error: "" });
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
+  const [isCartEmpty, setIsCartEmpty] = useState(false);
   const navigate = useNavigate();
 
   const handleCouponChange = (event) => {
@@ -70,6 +70,20 @@ const Cart = ({ cartItems, allItems, setCartItems }) => {
     setCartItems(cartItems.filter((book) => book !== id));
   };
 
+  useEffect(() => {
+    let tempTotal = 0;
+    for (const item of cartItems) {
+      tempTotal +=
+        allItems[allItems.findIndex((book) => book._id === item)].price;
+    }
+    setTotal(tempTotal);
+    if (discount > 0)
+      setDiscountedTotal(tempTotal - tempTotal / (100 / discount));
+
+    setIsCartEmpty(cartItems.length === 0);
+    // eslint-disable-next-line
+  }, [cartItems, discount]);
+
   const handleSubmitOrder = () => {
     if (creditCard.value.length !== 16) {
       setCreditCard({
@@ -79,14 +93,6 @@ const Cart = ({ cartItems, allItems, setCartItems }) => {
       return;
     }
     setCreditCard({ ...creditCard, error: "" });
-    if (cartItems.length === 0) {
-      setOpen(false);
-      setError("Your cart is empty !");
-      setTimeout(() => {
-        setError("");
-      }, 3000);
-      return;
-    }
 
     const order = {
       customerUsername: user.username,
@@ -230,7 +236,16 @@ const Cart = ({ cartItems, allItems, setCartItems }) => {
                       marginRight: "3em",
                     }}
                     secondary
-                    onClick={() => setOpen(true)}
+                    onClick={() => {
+                      if (isCartEmpty) {
+                        setError("Your cart is empty !");
+                        setTimeout(() => {
+                          setError("");
+                        }, 3000);
+                      } else {
+                        setOpen(true);
+                      }
+                    }}
                   >
                     Checkout
                   </Button>

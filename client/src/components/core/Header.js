@@ -25,6 +25,7 @@ const Header = ({ setCartItems }) => {
           member: false,
         });
         setCartItems([]);
+        sessionStorage.clear();
         toast.success("You are logout successfully.");
         navigate("/login");
       })
